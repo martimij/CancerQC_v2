@@ -7,8 +7,6 @@ Plots include:
 
 Data directory contains annonymized test data (QC metrics).  
 
-To test the app, download the repository, open cancerQCapp.R in Rstudio and click "Run App"  
-
 
 
 
