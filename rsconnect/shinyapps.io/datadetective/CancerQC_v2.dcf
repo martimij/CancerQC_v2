@@ -1,0 +1,13 @@
+name: CancerQC_v2
+title: CancerQC_v2
+username:
+account: datadetective
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 391787
+bundleId: 1507249
+url: https://datadetective.shinyapps.io/CancerQC_v2/
+when: 1532955558.59778
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: test_ cancerQC_data_cleanup.R
