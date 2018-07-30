@@ -12,8 +12,6 @@ load("test_QC_data.RData")
 
 # Blank theme
 blank <-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.title=element_blank())
-# Black regression line (linear model)
-regr_line <- geom_smooth(method = "lm", se = F, aes(group = 1), linetype = 2, col = "black", size = 0.5)
 # Bigger plot text
 bigger <- theme(legend.text=element_text(size=15), legend.title = element_text(size=15), axis.title = element_text(size=15), axis.text = element_text(size=15))
 # Tilted x-axis labels
@@ -30,7 +28,7 @@ ui <- fluidPage(
     sidebarPanel(
       
       checkboxGroupInput(inputId = "gmc",
-                         label = "Select GMC(s):",
+                         label = "Select Genomic Medicine Center(s):",
                          choices = paste0(GMCs$GMC, " - ", GMCs$CODE),
                          selected = "GMC1 - RGT"
       ),
@@ -42,14 +40,26 @@ ui <- fluidPage(
                      max = "2017-01-06",
                      startview = "year"
       ),
-      checkboxInput(inputId = "by_tumor_type",
-                    label = "By tumour type",
-                    value = FALSE
-      ),
+      # checkboxInput(inputId = "by_tumor_type",
+      #               label = "By tumour type",
+      #               value = FALSE
+      # ),
+      # checkboxInput(inputId = "by_sample_type",
+      #               label = "By sample type (FF/FFPE)",
+      #               value = TRUE
+      # ),
+
+      
+      radioButtons(inputId = "group_by",
+                   label = "Group by:",
+                   choices = list("Tumour type" = "by_tumour_type", "GMC" = "by_gmc"),
+                   selected = "by_gmc"),
+      
       checkboxInput(inputId = "by_sample_type",
-                    label = "By sample type (FF/FFPE)",
+                    label = "Split by sample type (FF/FFPE)",
                     value = TRUE
       ),
+      
       fileInput(inputId = "QC_file",
                 label = "Upload QC table:"
       )
@@ -112,175 +122,6 @@ ui <- fluidPage(
     )
   )
 ) 
-
-
-  
-  # navlistPanel(
-  #   tabPanel("SETTINGS",
-  #            mainPanel(
-  #              checkboxGroupInput(inputId = "gmc",
-  #                                 label = "Select GMC(s):",
-  #                                 choices = paste0(GMCs$GMC, " - ", GMCs$CODE),
-  #                                 selected = "GMC1 - RGT"
-  #              ),
-  #              
-  #              dateRangeInput(inputId = "dateRange",
-  #                             label = "Collection date:",
-  #                             start = "2015-06-23",
-  #                             end = "2017-01-06",
-  #                             min = "2015-06-23",
-  #                             max = "2017-01-06",
-  #                             startview = "year"
-  #              ),
-  #              
-  #              fileInput(inputId = "QC_file",
-  #                        label = "Upload QC table:")
-  #            )
-  #   ),
-  #   
-  #   tabPanel("TUMOUR TYPE SUMMARY", 
-  #            mainPanel(
-  #              plotOutput("TumourPlot")
-  #            )),
-  #   
-  #   tabPanel("SAMPLE TYPE SUMMARY", 
-  #            sidebarPanel(
-  #              tableOutput("DistributionTable")
-  #            ),
-  #            mainPanel(
-  #              plotOutput("TumourSampleTypePlot")
-  #            )),
-  #   tabPanel("AT DROPOUT",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("ATdropPlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("COVERAGE UNEVENNESS",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type2",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type2",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("UnCoveragePlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("MAPPING RATE",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type3",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type3",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("MappingPlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("CHIMERIC READS",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type4",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type4",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("ChimericPlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("DEAMINATION",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type5",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type5",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("DeaminationPlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("GENOME COVERAGE",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type6",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type6",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("CoveragePlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("COSMIC COVERAGE",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type8",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type8",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("CosCoveragePlot")
-  #            )
-  #            
-  #   ),
-  #   
-  #   tabPanel("DUPLICATION RATE",
-  #            sidebarPanel(
-  #              checkboxInput(inputId = "by_tumor_type7",
-  #                            label = "By tumour type",
-  #                            value = FALSE
-  #              ),
-  #              checkboxInput(inputId = "by_sample_type7",
-  #                            label = "By sample type (FF/FFPE)",
-  #                            value = TRUE
-  #              )),
-  #            mainPanel(
-  #              plotOutput("DuplicationPlot")
-  #            )
-  #            
-  #   )
-  #   
-  #   
-  # )  
-# )
 
 
 
@@ -405,18 +246,19 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=AT_DROP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=AT_DROP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=AT_DROP, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=AT_DROP)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=AT_DROP, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=AT_DROP)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger
     }
+
   })
   
   output$UnCoveragePlot <- renderPlot({
