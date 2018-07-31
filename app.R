@@ -160,7 +160,10 @@ server <- function(input, output, session) {
       # Add totals
       FreqData <- rbind(as.data.frame(FreqData), data.frame(TUMOUR_TYPE = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "TUMOUR TYPE"
-      FreqData$FF <- as.integer(FreqData$FF)
+      # Fix cases when FF is missing
+      if (!is.null(FreqData$FF)) {
+        FreqData$FF <- as.integer(FreqData$FF)
+      }
       # Fix cases when FFPE is missing
       if (!is.null(FreqData$FFPE)) { 
         FreqData$FFPE <- as.integer(FreqData$FFPE)
@@ -177,7 +180,10 @@ server <- function(input, output, session) {
       # Add totals
       FreqData <- rbind(as.data.frame(FreqData), data.frame(CENTER = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "GMC"
-      FreqData$FF <- as.integer(FreqData$FF)
+      # Fix cases when FF is missing
+      if (!is.null(FreqData$FF)) {
+        FreqData$FF <- as.integer(FreqData$FF)
+      }
       # Fix cases when FFPE is missing
       if (!is.null(FreqData$FFPE)) { 
         FreqData$FFPE <- as.integer(FreqData$FFPE)
