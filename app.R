@@ -17,6 +17,7 @@ bigger <- theme(legend.text=element_text(size=15), legend.title = element_text(s
 # Tilted x-axis labels
 tiltedX <- theme(axis.text.x=element_text(angle=45,hjust=1))
 
+gmc_choices <- paste0(GMCs$GMC, " - ", GMCs$CODE)
 
 ui <- fluidPage(
   
@@ -29,17 +30,19 @@ ui <- fluidPage(
       
       checkboxGroupInput(inputId = "gmc",
                          label = "Select Genomic Medicine Center(s):",
-                         choices = paste0(GMCs$GMC, " - ", GMCs$CODE),
-                         selected = "GMC1 - RGT"
-      ),
+                         choices = gmc_choices),
+      
+      checkboxInput(inputId = 'all_none', 
+                    label = 'All/None',
+                    value = TRUE),
+      
       dateRangeInput(inputId = "dateRange",
                      label = "Collection date:",
                      start = "2015-06-23",
                      end = "2017-01-06",
                      min = "2015-06-23",
                      max = "2017-01-06",
-                     startview = "year"
-      ),
+                     startview = "year"),
       
       radioButtons(inputId = "group_by",
                    label = "Group by:",
@@ -48,12 +51,10 @@ ui <- fluidPage(
       
       checkboxInput(inputId = "by_sample_type",
                     label = "Split by sample type (FF/FFPE)",
-                    value = TRUE
-      ),
+                    value = TRUE),
       
       fileInput(inputId = "QC_file",
-                label = "Upload QC table:"
-      )
+                label = "Upload QC table:")
       
     ),
     
@@ -61,7 +62,7 @@ ui <- fluidPage(
       tabsetPanel(
           tabPanel("TUMOUR SUMMARY",
                      plotOutput("TumourPlot")
-                   ),
+          ),
 
           tabPanel("SAMPLE SUMMARY",
                     sidebarPanel(
@@ -70,53 +71,62 @@ ui <- fluidPage(
                    mainPanel(
                      plotOutput("TumourSampleTypePlot")
                    )
-                   ),
+          ),
+          
           tabPanel("AT DROP",
                    plotOutput("ATdropPlot")
           ),
             
           tabPanel("COVERAGE UNEVENNESS",
                        plotOutput("UnCoveragePlot")
-            ),
+          ),
 
-            tabPanel("MAPPING RATE",
+          tabPanel("MAPPING RATE",
                        plotOutput("MappingPlot")
                      
-            ),
+          ),
 
-            tabPanel("CHIMERIC READS",
+          tabPanel("CHIMERIC READS",
                        plotOutput("ChimericPlot")
 
-            ),
+          ),
 
-            tabPanel("DEAMINATION",
+          tabPanel("DEAMINATION",
                        plotOutput("DeaminationPlot")
-            ),
+          ),
 
-            tabPanel("GENOME COVERAGE",
+          tabPanel("GENOME COVERAGE",
                        plotOutput("CoveragePlot")
 
-            ),
+          ),
 
-            tabPanel("COSMIC COVERAGE",
+          tabPanel("COSMIC COVERAGE",
                        plotOutput("CosCoveragePlot")
                      
-            ),
+          ),
 
-            tabPanel("DUPLICATION",
+          tabPanel("DUPLICATION",
                        plotOutput("DuplicationPlot")
 
-            )
-                   
-    )
-      
+          )
+      )
     )
   )
 ) 
 
 
 
-server <- function(input, output) {
+server <- function(input, output, session) {
+
+  # Reactivity for the All/None GMC checkbox (doesn't work)
+  observe({
+    updateCheckboxGroupInput(
+      session = session,
+      inputId = 'gmc',
+      choices = gmc_choices,
+      selected = if (input$all_none) gmc_choices
+    )
+  })
   
   output$TumourPlot <- renderPlot({
     req(input$gmc)
