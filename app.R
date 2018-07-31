@@ -25,6 +25,7 @@ ui <- fluidPage(
   
   # Application title
   titlePanel("Cancer Sample QC"),
+  h4("Visualising the quality of whole genome sequencing data"),
   
   sidebarLayout(
     
@@ -39,7 +40,7 @@ ui <- fluidPage(
                     value = TRUE),
       
       dateRangeInput(inputId = "dateRange",
-                     label = "Collection date:",
+                     label = "Sample collection date:",
                      start = "2015-06-23",
                      end = "2017-01-06",
                      min = "2015-06-23",
@@ -48,15 +49,17 @@ ui <- fluidPage(
       
       radioButtons(inputId = "group_by",
                    label = "Group by:",
-                   choices = list("Tumour type" = "by_tumour_type", "GMC" = "by_gmc"),
+                   choices = list("TUMOUR TYPE" = "by_tumour_type", "GMC" = "by_gmc"),
                    selected = "by_gmc"),
       
       checkboxInput(inputId = "by_sample_type",
                     label = "Split by sample type (FF/FFPE)",
                     value = TRUE),
+      # p(em("FF = 'Fresh Frozen'")),
+      # p(em("FFPE = 'Formalin-Fixed Paraffin Embedded'")),
       
       fileInput(inputId = "QC_file",
-                label = "Upload QC table (to be implemented):")
+                label = "Upload QC table:")
       
     ),
     
@@ -64,6 +67,7 @@ ui <- fluidPage(
       tabsetPanel(
 
           tabPanel("SUMMARY",
+                    br(),
                     sidebarPanel(
                       tableOutput("DistributionTable")
                       ),
@@ -73,39 +77,47 @@ ui <- fluidPage(
           ),
           
           tabPanel("AT DROPOUT",
+                   br(),
                    plotOutput("ATdropPlot")
           ),
             
-          tabPanel("COVERAGE UNEVENNESS",
-                       plotOutput("UnCoveragePlot")
+          tabPanel("UNEVENNESS",
+                   br(),
+                   plotOutput("UnCoveragePlot")
           ),
 
           tabPanel("MAPPING RATE",
-                       plotOutput("MappingPlot")
+                   br(),
+                   plotOutput("MappingPlot")
                      
           ),
 
-          tabPanel("CHIMERIC READS",
-                       plotOutput("ChimericPlot")
+          tabPanel("CHIMERAS",
+                   br(),
+                   plotOutput("ChimericPlot")
 
           ),
 
           tabPanel("DEAMINATION",
-                       plotOutput("DeaminationPlot")
+                   br(),
+                   plotOutput("DeaminationPlot")
           ),
 
           tabPanel("GENOME COVERAGE",
-                       plotOutput("CoveragePlot")
+                   br(),
+                   plotOutput("CoveragePlot")
 
           ),
 
           tabPanel("COSMIC COVERAGE",
-                       plotOutput("CosCoveragePlot")
+                   br(),
+                   plotOutput("CosCoveragePlot")
                      
           ),
 
           tabPanel("DUPLICATION",
-                       plotOutput("DuplicationPlot")
+                   br(),
+                   plotOutput("DuplicationPlot")
 
           )
       )
