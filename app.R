@@ -2,8 +2,8 @@
 
 library(shiny)
 library(dplyr)
-library(data.table)
 library(ggplot2)
+library(tidyr)
 
 # Load test data
 load("test_QC_data.RData")
@@ -17,8 +17,10 @@ bigger <- theme(legend.text=element_text(size=15), legend.title = element_text(s
 # Tilted x-axis labels
 tiltedX <- theme(axis.text.x=element_text(angle=45,hjust=1))
 
-gmc_choices <- paste0(GMCs$GMC, " - ", GMCs$CODE)
-
+# Show GMCs present in the test data
+#gmc_choices <- paste0(GMCs$GMC, " - ", GMCs$CODE)
+gmc_choices <- as.character(GMCs$GMC)
+                      
 ui <- fluidPage(
   
   # Application title
@@ -115,7 +117,7 @@ ui <- fluidPage(
 
 server <- function(input, output, session) {
 
-  # Reactivity for the All/None GMC checkbox (doesn't work)
+  # Reactivity for the All/None GMC checkbox
   observe({
     updateCheckboxGroupInput(
       session = session,
@@ -124,17 +126,15 @@ server <- function(input, output, session) {
       selected = if (input$all_none) gmc_choices
     )
   })
-
   
   output$DistributionTable <- renderTable({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
-    if (!is.null(input$QC_file)){
+ 
+     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
       QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
@@ -150,20 +150,53 @@ server <- function(input, output, session) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    table <- as.data.frame.matrix(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE, QC_tumor[QC_tumor$CENTER %in% center,]$GROUP))
-    table <- tibble::rownames_to_column(table)
-    names(table)[1] <- "Tumour Type"
-    table
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
+      FreqData <- QC_tumor %>% 
+        filter(CENTER %in% center) %>% 
+        group_by(TUMOUR_TYPE, GROUP) %>% 
+        summarise(COUNT = n()) %>% 
+        spread(GROUP, COUNT)
+      names(FreqData)[1] <- "TUMOUR TYPE"
+      FreqData
+    }
+    
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      FreqData <- QC_tumor %>% 
+        filter(CENTER %in% center) %>% 
+        group_by(GROUP, CENTER) %>% 
+        summarise(COUNT = n()) %>% 
+        spread(GROUP, COUNT)
+      names(FreqData)[1] <- "GMC"
+      FreqData
+
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      FreqData <- QC_tumor %>% 
+        filter(CENTER %in% center) %>% 
+        group_by(TUMOUR_TYPE) %>% 
+        summarise(COUNT = n())
+      names(FreqData)[1] <- "TUMOUR TYPE"
+      FreqData
+    }
+    else {
+      FreqData <- QC_tumor %>% 
+        filter(CENTER %in% center) %>% 
+        group_by(CENTER) %>% 
+        summarise(COUNT = n())
+      names(FreqData)[1] <- "GMC"
+      FreqData
+    }
+    
   })
   
   output$TumourSampleTypePlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -179,23 +212,51 @@ server <- function(input, output, session) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE, QC_tumor[QC_tumor$CENTER %in% center,]$GROUP))
-    names(FreqData) <- c("TUMOUR TYPE", "SAMPLE TYPE", "FREQ")
-    ggplot(FreqData, aes(x=`TUMOUR TYPE`, y = FREQ, fill= `SAMPLE TYPE`)) +
-      geom_bar(stat = "identity") +
-      bigger +
-      tiltedX
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
+      FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE, QC_tumor[QC_tumor$CENTER %in% center,]$GROUP))
+      names(FreqData) <- c("TUMOUR TYPE", "SAMPLE TYPE", "FREQ")
+      ggplot(FreqData, aes(x=`TUMOUR TYPE`, y = FREQ, fill= `SAMPLE TYPE`)) +
+        geom_bar(stat = "identity") +
+        bigger +
+        tiltedX
+    }
+    
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$CENTER, QC_tumor[QC_tumor$CENTER %in% center,]$GROUP))
+      names(FreqData) <- c("GMC", "SAMPLE TYPE", "FREQ")
+      ggplot(FreqData, aes(x=GMC, y = FREQ, fill= `SAMPLE TYPE`)) +
+        geom_bar(stat = "identity") +
+        bigger +
+        tiltedX
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE))
+      names(FreqData) <- c("TUMOUR TYPE", "FREQ")
+      ggplot(FreqData, aes(x=`TUMOUR TYPE`, y = FREQ)) +
+        geom_bar(stat = "identity") +
+        bigger +
+        tiltedX
+    }
+    else {
+      FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$CENTER))
+      names(FreqData) <- c("GMC", "FREQ")
+      ggplot(FreqData, aes(x=GMC, y = FREQ)) +
+        geom_bar(stat = "identity") +
+        bigger +
+        tiltedX
+    }
   })
   
   output$ATdropPlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -230,13 +291,12 @@ server <- function(input, output, session) {
   })
   
   output$UnCoveragePlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -255,7 +315,6 @@ server <- function(input, output, session) {
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
     
-    
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COVERAGE_HOMOGENEITY, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage")  + bigger + tiltedX
     } 
@@ -271,13 +330,12 @@ server <- function(input, output, session) {
   })
   
   output$MappingPlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+   
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -312,13 +370,12 @@ server <- function(input, output, session) {
   })
   
   output$ChimericPlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -336,9 +393,7 @@ server <- function(input, output, session) {
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    
-    
-    
+ 
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=CHIMERIC_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% chimeric reads")  + bigger + tiltedX
     } 
@@ -354,13 +409,12 @@ server <- function(input, output, session) {
   })
   
   output$DeaminationPlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -378,7 +432,6 @@ server <- function(input, output, session) {
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DEAMINATION_MISMATCHES_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% deamination")  + bigger + tiltedX
@@ -395,13 +448,12 @@ server <- function(input, output, session) {
   })
   
   output$CoveragePlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -419,7 +471,6 @@ server <- function(input, output, session) {
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median coverage")  + bigger + tiltedX
@@ -436,13 +487,12 @@ server <- function(input, output, session) {
   })
   
   output$DuplicationPlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -460,7 +510,6 @@ server <- function(input, output, session) {
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DUPL_RATE, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Duplication rate")  + bigger + tiltedX
@@ -477,13 +526,12 @@ server <- function(input, output, session) {
   })
   
   output$CosCoveragePlot <- renderPlot({
+    
     req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
+    center  <- GMCs[GMCs$GMC %in% input$gmc,]$CODE
     start_date <- input$dateRange[1]
     end_date <- input$dateRange[2]
+    
     if (!is.null(input$QC_file)){
       QC <- read.csv(as.character(input$QC_file$datapath))
       QC <- QC[!duplicated(QC),]  # remove exact duplicates
@@ -502,7 +550,6 @@ server <- function(input, output, session) {
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
     
-    
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COSMIC_COV_LT30X, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")   + bigger + tiltedX
     } 
@@ -516,7 +563,6 @@ server <- function(input, output, session) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COSMIC_COV_LT30X)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger
     }
   })
-  
   
 }
 
