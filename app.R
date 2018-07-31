@@ -95,7 +95,7 @@ ui <- fluidPage(
                      
           ),
 
-          tabPanel("CHIMERAS",
+          tabPanel("CHIMERIC READS",
                    br(),
                    plotOutput("ChimericPlot")
 
