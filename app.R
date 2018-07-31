@@ -26,6 +26,9 @@ ui <- fluidPage(
   # Application title
   titlePanel("Cancer Sample QC"),
   h4("Visualising the quality of whole genome sequencing data"),
+  a(href="https://github.com/martimij/CancerQC_v2", "Documentation (GitHub)"),
+  br(),
+  br(),
   
   sidebarLayout(
     
