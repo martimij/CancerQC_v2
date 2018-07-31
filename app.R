@@ -44,7 +44,7 @@ ui <- fluidPage(
                      end = "2017-01-06",
                      min = "2015-06-23",
                      max = "2017-01-06",
-                     startview = "year"),
+                     startview = "month"),
       
       radioButtons(inputId = "group_by",
                    label = "Group by:",
