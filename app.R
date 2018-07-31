@@ -157,8 +157,15 @@ server <- function(input, output, session) {
         group_by(TUMOUR_TYPE, GROUP) %>% 
         summarise(COUNT = n()) %>% 
         spread(GROUP, COUNT)
+      # Add totals
+      FreqData <- rbind(as.data.frame(FreqData), data.frame(TUMOUR_TYPE = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "TUMOUR TYPE"
-      FreqData
+      FreqData$FF <- as.integer(FreqData$FF)
+      # Fix cases when FFPE is missing
+      if (!is.null(FreqData$FFPE)) { 
+        FreqData$FFPE <- as.integer(FreqData$FFPE)
+      }
+     FreqData
     }
     
     else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
@@ -167,7 +174,14 @@ server <- function(input, output, session) {
         group_by(GROUP, CENTER) %>% 
         summarise(COUNT = n()) %>% 
         spread(GROUP, COUNT)
+      # Add totals
+      FreqData <- rbind(as.data.frame(FreqData), data.frame(CENTER = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "GMC"
+      FreqData$FF <- as.integer(FreqData$FF)
+      # Fix cases when FFPE is missing
+      if (!is.null(FreqData$FFPE)) { 
+        FreqData$FFPE <- as.integer(FreqData$FFPE)
+      }
       FreqData
 
     }
@@ -176,7 +190,10 @@ server <- function(input, output, session) {
         filter(CENTER %in% center) %>% 
         group_by(TUMOUR_TYPE) %>% 
         summarise(COUNT = n())
+      # Add totals
+      FreqData <- rbind(as.data.frame(FreqData), data.frame(TUMOUR_TYPE = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "TUMOUR TYPE"
+      FreqData$COUNT <- as.integer(FreqData$COUNT)
       FreqData
     }
     else {
@@ -184,11 +201,15 @@ server <- function(input, output, session) {
         filter(CENTER %in% center) %>% 
         group_by(CENTER) %>% 
         summarise(COUNT = n())
+      # Add totals
+      FreqData <- rbind(as.data.frame(FreqData), data.frame(CENTER = "TOTAL", t(colSums(FreqData[,-1], na.rm = T))))
       names(FreqData)[1] <- "GMC"
+      FreqData$COUNT <- as.integer(FreqData$COUNT)
       FreqData
     }
     
   })
+  
   
   output$TumourSampleTypePlot <- renderPlot({
     
@@ -214,6 +235,7 @@ server <- function(input, output, session) {
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+  
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE, QC_tumor[QC_tumor$CENTER %in% center,]$GROUP))
