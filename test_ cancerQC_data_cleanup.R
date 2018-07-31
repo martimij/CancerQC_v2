@@ -10,7 +10,7 @@ library(ggplot2)
 tumor <- c("FF", "FFPE")
 
 # Load and clean QC metrics data (NEEDS MANUAL UPDATE)
-QC <- read.csv("./Data/ready_to_plot.05-02-17.csv")
+QC <- read.csv("/Users/martina/Desktop/Gel work/PROJECTS/CancerQC_shiny/Data/ready_to_plot.05-02-17.csv")
 QC <- QC[!duplicated(QC),]  # remove exact duplicates
 QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
 QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
@@ -24,11 +24,18 @@ QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma
 QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
 QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
 
-# Load GMC codes
-GMCs <- read.csv("./Data/GMCs.csv")
-GMCs <- GMCs %>% select(CODE, GMC)
-GMCs$CODE <- as.character(GMCs$CODE)
+# # Load GMC codes (not necessary)
+# GMCs <- read.csv("./Data/GMCs.csv")
+# GMCs <- GMCs %>% select(CODE, GMC)
+# GMCs$CODE <- as.character(GMCs$CODE)
+
+# Create annonymized GMC variable
+QC_tumor$CENTER_annon <- QC_tumor$CENTER
+levels(QC_tumor$CENTER_annon)
+levels(QC_tumor$CENTER_annon) <- paste0("GMC", 1:length(levels(QC_tumor$CENTER)))
+levels(QC_tumor$CENTER_annon)
+table(QC_tumor$CENTER, QC_tumor$CENTER_annon)
 
 # Save test data
-save(GMCs, QC, QC_tumor, file = "test_QC_data.RData")
+save(QC_tumor, file = "test_QC_data.RData")
 
