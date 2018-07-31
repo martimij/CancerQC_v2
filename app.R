@@ -60,11 +60,8 @@ ui <- fluidPage(
     
     mainPanel(
       tabsetPanel(
-          tabPanel("TUMOUR SUMMARY",
-                     plotOutput("TumourPlot")
-          ),
 
-          tabPanel("SAMPLE SUMMARY",
+          tabPanel("SUMMARY",
                     sidebarPanel(
                       tableOutput("DistributionTable")
                       ),
@@ -73,7 +70,7 @@ ui <- fluidPage(
                    )
           ),
           
-          tabPanel("AT DROP",
+          tabPanel("AT DROPOUT",
                    plotOutput("ATdropPlot")
           ),
             
@@ -127,39 +124,7 @@ server <- function(input, output, session) {
       selected = if (input$all_none) gmc_choices
     )
   })
-  
-  output$TumourPlot <- renderPlot({
-    req(input$gmc)
-    gmcs <- sapply(1:length(input$gmc), function(x){
-      strsplit(input$gmc[x], split = " - ")[[1]][1]
-    })
-    center  <- GMCs[GMCs$GMC %in% gmcs,]$CODE
-    start_date <- input$dateRange[1]
-    end_date <- input$dateRange[2]
-    if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
-    }
-    QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    FreqData <- as.data.frame(table(QC_tumor[QC_tumor$CENTER %in% center,]$TUMOUR_TYPE))
-    names(FreqData) <- c("TUMOUR TYPE", "FREQ")
-    ggplot(FreqData, aes(x="", y=FREQ, fill = `TUMOUR TYPE`)) + 
-      geom_bar(width = 1, stat = "identity") + 
-      theme_void() + 
-      coord_polar("y", start=0) +
-      theme(legend.text=element_text(size=15), legend.title = element_text(size=15))
-  })
+
   
   output$DistributionTable <- renderTable({
     req(input$gmc)
