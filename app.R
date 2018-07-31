@@ -40,15 +40,6 @@ ui <- fluidPage(
                      max = "2017-01-06",
                      startview = "year"
       ),
-      # checkboxInput(inputId = "by_tumor_type",
-      #               label = "By tumour type",
-      #               value = FALSE
-      # ),
-      # checkboxInput(inputId = "by_sample_type",
-      #               label = "By sample type (FF/FFPE)",
-      #               value = TRUE
-      # ),
-
       
       radioButtons(inputId = "group_by",
                    label = "Group by:",
@@ -245,7 +236,9 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+    
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=AT_DROP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "A/T Dropout") + bigger + tiltedX
     } 
@@ -284,18 +277,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COVERAGE_HOMOGENEITY, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COVERAGE_HOMOGENEITY, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COVERAGE_HOMOGENEITY, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COVERAGE_HOMOGENEITY)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COVERAGE_HOMOGENEITY, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COVERAGE_HOMOGENEITY)) + geom_boxplot() + labs(x = "", y = "Unevenness of coverage") + bigger
     }
   })
   
@@ -322,18 +318,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MAPPING_RATE_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Mapping rate")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MAPPING_RATE_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Mapping rate") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MAPPING_RATE_PER, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "Mapping rate") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MAPPING_RATE_PER)) + geom_boxplot() + labs(x = "", y = "Mapping rate") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MAPPING_RATE_PER, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "Mapping rate") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MAPPING_RATE_PER)) + geom_boxplot() + labs(x = "", y = "Mapping rate") + bigger
     }
   })
   
@@ -360,18 +359,22 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=CHIMERIC_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% chimeric reads")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=CHIMERIC_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% chimeric reads") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=CHIMERIC_PER, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "% chimeric reads") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=CHIMERIC_PER)) + geom_boxplot() + labs(x = "", y = "% chimeric reads") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=CHIMERIC_PER, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "% chimeric reads") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=CHIMERIC_PER)) + geom_boxplot() + labs(x = "", y = "% chimeric reads") + bigger
     }
   })
   
@@ -398,18 +401,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DEAMINATION_MISMATCHES_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% deamination")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DEAMINATION_MISMATCHES_PER, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% deamination") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DEAMINATION_MISMATCHES_PER, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "% deamination") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DEAMINATION_MISMATCHES_PER)) + geom_boxplot() + labs(x = "", y = "% deamination") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DEAMINATION_MISMATCHES_PER, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "% deamination") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DEAMINATION_MISMATCHES_PER)) + geom_boxplot() + labs(x = "", y = "% deamination") + bigger
     }
   })
   
@@ -436,18 +442,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median coverage")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MEDIAN_COV, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger
     }
   })
   
@@ -474,18 +483,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type){
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DUPL_RATE, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Duplication rate")  + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DUPL_RATE, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Duplication rate") + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DUPL_RATE, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "Duplication rate") + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=DUPL_RATE)) + geom_boxplot() + labs(x = "", y = "Duplication rate") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DUPL_RATE, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "Duplication rate") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=DUPL_RATE)) + geom_boxplot() + labs(x = "", y = "Duplication rate") + bigger
     }
   })
   
@@ -512,18 +524,21 @@ server <- function(input, output) {
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
       QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
-    if (input$by_tumor_type & input$by_sample_type) {
+    
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COSMIC_COV_LT30X, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")   + bigger + tiltedX
     } 
-    else if (input$by_sample_type) {
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
       ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COSMIC_COV_LT30X, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger
     }
-    else if (input$by_tumor_type) {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COSMIC_COV_LT30X, colour = TUMOUR_TYPE)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger + tiltedX
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=TUMOUR_TYPE, y=COSMIC_COV_LT30X)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COSMIC_COV_LT30X, colour = CENTER)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER %in% center,], aes(x=CENTER, y=COSMIC_COV_LT30X)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger
     }
   })
   
