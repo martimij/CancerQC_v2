@@ -42,6 +42,7 @@ ui <- fluidPage(
       checkboxInput(inputId = 'all_none', 
                     label = 'All/None',
                     value = TRUE),
+      hr(),
       
       dateRangeInput(inputId = "dateRange",
                      label = "Sample collection date:",
@@ -50,15 +51,18 @@ ui <- fluidPage(
                      min = "2015-06-23",
                      max = "2017-01-06",
                      startview = "month"),
+      hr(),
       
       radioButtons(inputId = "group_by",
                    label = "Group by:",
                    choices = list("TUMOUR TYPE" = "by_tumour_type", "GMC" = "by_gmc"),
                    selected = "by_gmc"),
+      hr(),
       
       checkboxInput(inputId = "by_sample_type",
                     label = "Split by sample type (FF/FFPE)",
                     value = TRUE),
+      hr(),
       
       fileInput(inputId = "QC_file",
                 label = "Upload QC table:")
