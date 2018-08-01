@@ -1,8 +1,6 @@
 # Test data cleanup for CancerQC_v2 shiny app
 
 library(dplyr)
-library(data.table)
-library(ggplot2)
 
 #### Load and prepare objects
 
@@ -24,10 +22,6 @@ QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma
 QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
 QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
 
-# # Load GMC codes (not necessary)
-# GMCs <- read.csv("./Data/GMCs.csv")
-# GMCs <- GMCs %>% select(CODE, GMC)
-# GMCs$CODE <- as.character(GMCs$CODE)
 
 # Create annonymized GMC variable
 QC_tumor$CENTER_annon <- QC_tumor$CENTER
@@ -39,3 +33,10 @@ table(QC_tumor$CENTER, QC_tumor$CENTER_annon)
 # Save test data
 save(QC_tumor, file = "test_QC_data.RData")
 
+# Prepare and write a dummy table
+load("test_QC_data.RData")
+QC_table_dummy <- QC_tumor %>% select(-(WELL_ID), -(CENTER), -(DIVERSITY), -(GbQ30NoDupsNoClip), -(perc_bases_ge_15x_mapQ_ge11))
+write.csv(QC_table_dummy, file = "./QC_dummy_table.csv")
+
+# Save new table as test data
+save(QC_tumor, file = "test_QC_data.RData")
