@@ -5,9 +5,9 @@ account: datadetective
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 391787
-bundleId: 1510042
+bundleId: 1511401
 url: https://datadetective.shinyapps.io/CancerQC_v2/
-when: 1533056505.89274
+when: 1533124766.04651
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: test_ cancerQC_data_cleanup.R
+ignoredFiles: QC_dummy_table.csv|test_ cancerQC_data_cleanup.R
