@@ -7,10 +7,10 @@ library(dplyr)
 # Tumor sample groups
 tumor <- c("FF", "FFPE")
 
-# Load and clean QC metrics data (NEEDS MANUAL UPDATE)
-QC <- read.csv("/Users/martina/Desktop/Gel work/PROJECTS/CancerQC_shiny/Data/ready_to_plot.05-02-17.csv")
+# Load and clean QC metrics data
+QC <- read.csv("./Data/ready_to_plot.05-02-17.csv")
 QC <- QC[!duplicated(QC),]  # remove exact duplicates
-QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
+QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),]
 QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
 QC_tumor <- QC %>% filter(GROUP %in% tumor)
 QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
@@ -33,10 +33,15 @@ table(QC_tumor$CENTER, QC_tumor$CENTER_annon)
 # Save test data
 save(QC_tumor, file = "test_QC_data.RData")
 
-# Prepare and write a dummy table
+# Prepare a dummy QC data table
 load("test_QC_data.RData")
+# Remove unnecessary fields
 QC_table_dummy <- QC_tumor %>% select(-(WELL_ID), -(CENTER), -(DIVERSITY), -(GbQ30NoDupsNoClip), -(perc_bases_ge_15x_mapQ_ge11))
+# Save new table as test data
+save(QC_table_dummy, file = "test_QC_data.RData")
+# Remove some GMCs
+QC_table_dummy <- QC_table_dummy %>% filter(!CENTER_annon %in% c("GMC9", "GMC10"))
+# Write the dummy table
 write.csv(QC_table_dummy, file = "./QC_dummy_table.csv")
 
-# Save new table as test data
-save(QC_tumor, file = "test_QC_data.RData")
+
