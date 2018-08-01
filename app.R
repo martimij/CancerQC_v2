@@ -4,6 +4,7 @@ library(shiny)
 library(dplyr)
 library(ggplot2)
 library(tidyr)
+library(readr)
 
 # Load test data
 load("test_QC_data.RData")
@@ -58,8 +59,6 @@ ui <- fluidPage(
       checkboxInput(inputId = "by_sample_type",
                     label = "Split by sample type (FF/FFPE)",
                     value = TRUE),
-      # p(em("FF = 'Fresh Frozen'")),
-      # p(em("FFPE = 'Formalin-Fixed Paraffin Embedded'")),
       
       fileInput(inputId = "QC_file",
                 label = "Upload QC table:")
@@ -151,20 +150,9 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
  
      if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
-    }
+       QC_tumor <- read_csv(as.character(input$QC_file$datapath))
+     }
+    
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
@@ -241,19 +229,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -302,19 +278,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -342,19 +306,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -381,19 +333,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
    
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -421,19 +361,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -460,19 +388,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -499,19 +415,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -538,19 +442,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
@@ -577,19 +469,7 @@ server <- function(input, output, session) {
     end_date <- input$dateRange[2]
     
     if (!is.null(input$QC_file)){
-      QC <- read.csv(as.character(input$QC_file$datapath))
-      QC <- QC[!duplicated(QC),]  # remove exact duplicates
-      QC <- QC[!duplicated(QC$WELL_ID, fromLast = T),] # WARNING: this table has also WELL_ID duplicates where second entries are empty
-      QC$COLLECTING_DATE <- as.Date(QC$COLLECTING_DATE, format = "%Y-%m-%d")
-      QC_tumor <- QC %>% filter(GROUP %in% tumor)
-      QC_tumor$GROUP <- as.character(QC_tumor$GROUP)
-      QC_tumor$TUMOUR_TYPE <- as.character(QC_tumor$TUMOUR_TYPE)
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "N/A",]$TUMOUR_TYPE <- "Unknown"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Testicular Germ Cell Tumours",]$TUMOUR_TYPE <- "Testicular"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Malignant Melanoma",]$TUMOUR_TYPE <- "Melanoma"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Endometrial Carcinoma",]$TUMOUR_TYPE <- "Endometrial"
-      QC_tumor[QC_tumor$TUMOUR_TYPE == "Adult Glioma",]$TUMOUR_TYPE <- "Glioma"
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
     }
     
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
