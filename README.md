@@ -21,7 +21,9 @@ Sample types:
 - FF = "Fresh frozen" tumour tissue  
 - FFPE = "Formalin-fixed paraffin embeded" tumour tissue  
 
-Test data includes a small set of annonymised samples.  
+Test data includes a small set of annonymised samples.
+Dummy input data table available here:  
+https://github.com/martimij/CancerQC_v2/blob/master/QC_dummy_table.csv
 
 
 
