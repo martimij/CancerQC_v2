@@ -78,49 +78,54 @@ ui <- fluidPage(
                    )
           ),
           
-          tabPanel("AT DROPOUT",
-                   br(),
-                   plotOutput("ATdropPlot")
-          ),
-            
-          tabPanel("UNEVENNESS",
-                   br(),
-                   plotOutput("UnCoveragePlot")
-          ),
-
           tabPanel("MAPPING RATE",
                    br(),
                    plotOutput("MappingPlot")
-                     
+                   
           ),
-
+          
+          tabPanel("COVERAGE",
+                   br(),
+                   plotOutput("CoveragePlot"),
+                   plotOutput("CosCoveragePlot")
+                   
+          ),
+          
+          tabPanel("COVERAGE UNEVENNESS",
+                   br(),
+                   plotOutput("UnCoveragePlot")
+          ),
+          
+          tabPanel("AT/GC DROPOUT",
+                   br(),
+                   plotOutput("ATdropPlot"),
+                   plotOutput("GCdropPlot")
+          ),
+          
           tabPanel("CHIMERIC READS",
                    br(),
                    plotOutput("ChimericPlot")
-
           ),
 
           tabPanel("DEAMINATION",
                    br(),
                    plotOutput("DeaminationPlot")
           ),
-
-          tabPanel("GENOME COVERAGE",
+          
+          tabPanel("FRAGMENT SIZE",
                    br(),
-                   plotOutput("CoveragePlot")
-
+                   plotOutput("FragmentPlot")
           ),
-
-          tabPanel("COSMIC COVERAGE",
+          
+          tabPanel("MUTATIONAL BURDEN",
                    br(),
-                   plotOutput("CosCoveragePlot")
-                     
+                   plotOutput("SNVPlot"),
+                   plotOutput("IndelPlot")
           ),
-
+          
           tabPanel("DUPLICATION",
                    br(),
                    plotOutput("DuplicationPlot")
-
           )
       )
     )
@@ -298,6 +303,35 @@ server <- function(input, output, session) {
 
   })
   
+  output$GCdropPlot <- renderPlot({
+    
+    req(input$gmc)
+    center <- input$gmc
+    start_date <- input$dateRange[1]
+    end_date <- input$dateRange[2]
+    
+    if (!is.null(input$QC_file)){
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
+    }
+    
+    QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=GC_DROP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "G/C Dropout") + bigger + tiltedX
+    } 
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=GC_DROP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "G/C Dropout") + bigger
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=GC_DROP)) + geom_boxplot() + labs(x = "", y = "G/C Dropout") + bigger + tiltedX
+    }
+    else {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=GC_DROP)) + geom_boxplot() + labs(x = "", y = "G/C Dropout") + bigger
+    }
+    
+  })
+  
+  
   output$UnCoveragePlot <- renderPlot({
     
     req(input$gmc)
@@ -421,16 +455,16 @@ server <- function(input, output, session) {
     QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
     
     if (input$by_sample_type & "by_tumour_type" %in% input$group_by){
-      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median coverage")  + bigger + tiltedX
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median whole genome coverage")  + bigger + tiltedX
     } 
     else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
-      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=MEDIAN_COV, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Median whole genome coverage") + bigger
     }
     else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
-      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger + tiltedX
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median whole genome coverage") + bigger + tiltedX
     }
     else {
-      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median coverage") + bigger
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=MEDIAN_COV)) + geom_boxplot() + labs(x = "", y = "Median whole genome coverage") + bigger
     }
   })
   
@@ -487,6 +521,90 @@ server <- function(input, output, session) {
       ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=COSMIC_COV_LT30X)) + geom_boxplot() + labs(x = "", y = "% Cosmic regions < 30X")  + bigger
     }
   })
+  
+  
+  output$FragmentPlot <- renderPlot({
+    
+    req(input$gmc)
+    center <- input$gmc
+    start_date <- input$dateRange[1]
+    end_date <- input$dateRange[2]
+    
+    if (!is.null(input$QC_file)){
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
+    }
+    
+    QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=AV_FRAGMENT_SIZE_BP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Average fragment size (bp)")   + bigger + tiltedX
+    } 
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=AV_FRAGMENT_SIZE_BP, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Average fragment size (bp)")  + bigger
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=AV_FRAGMENT_SIZE_BP)) + geom_boxplot() + labs(x = "", y = "Average fragment size (bp)")  + bigger + tiltedX
+    }
+    else {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=AV_FRAGMENT_SIZE_BP)) + geom_boxplot() + labs(x = "", y = "Average fragment size (bp)")  + bigger
+    }
+  })
+  
+ 
+  output$SNVPlot <- renderPlot({
+    
+    req(input$gmc)
+    center <- input$gmc
+    start_date <- input$dateRange[1]
+    end_date <- input$dateRange[2]
+    
+    if (!is.null(input$QC_file)){
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
+    }
+    
+    QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=SNV_LOG, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "SNVs (log)")   + bigger + tiltedX
+    } 
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=SNV_LOG, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "SNVs (log)")  + bigger
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=SNV_LOG)) + geom_boxplot() + labs(x = "", y = "SNVs (log)")  + bigger + tiltedX
+    }
+    else {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=SNV_LOG)) + geom_boxplot() + labs(x = "", y = "SNVs (log)")  + bigger
+    }
+  }) 
+  
+  
+  output$IndelPlot <- renderPlot({
+    
+    req(input$gmc)
+    center <- input$gmc
+    start_date <- input$dateRange[1]
+    end_date <- input$dateRange[2]
+    
+    if (!is.null(input$QC_file)){
+      QC_tumor <- read_csv(as.character(input$QC_file$datapath))
+    }
+    
+    QC_tumor <- QC_tumor %>% filter((COLLECTING_DATE >= start_date) & (COLLECTING_DATE <= end_date))
+    
+    if (input$by_sample_type & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=INDEL_LOG, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Indels (log)")   + bigger + tiltedX
+    } 
+    else if (input$by_sample_type & !("by_tumour_type" %in% input$group_by)) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=INDEL_LOG, colour = GROUP)) + geom_boxplot() + labs(x = "", y = "Indels (log)")  + bigger
+    }
+    else if (!(input$by_sample_type) & "by_tumour_type" %in% input$group_by) {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=TUMOUR_TYPE, y=INDEL_LOG)) + geom_boxplot() + labs(x = "", y = "Indels (log)")  + bigger + tiltedX
+    }
+    else {
+      ggplot(QC_tumor[QC_tumor$CENTER_annon %in% center,], aes(x=CENTER_annon, y=INDEL_LOG)) + geom_boxplot() + labs(x = "", y = "Indels (log)")  + bigger
+    }
+  }) 
   
 }
 
