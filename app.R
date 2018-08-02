@@ -9,8 +9,15 @@ library(readr)
 # Load test data
 load("test_QC_data.RData")
 
-### Helper functions for plotting
+# Get min and max collection dates
+min_date <- min(QC_tumor$COLLECTING_DATE, na.rm = T)
+max_date <- max(QC_tumor$COLLECTING_DATE, na.rm = T)
 
+# Get GMCs present in the test data
+gmc_choices <- levels(QC_tumor$CENTER_annon)
+
+
+### Helper functions for plotting
 # Blank theme
 blank <-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(), axis.line = element_line(colour = "black"), legend.title=element_blank())
 # Bigger plot text
@@ -18,9 +25,6 @@ bigger <- theme(legend.text=element_text(size=15), legend.title = element_text(s
 # Tilted x-axis labels
 tiltedX <- theme(axis.text.x=element_text(angle=45,hjust=1))
 
-# Show GMCs present in the test data
-#gmc_choices <- paste0(GMCs$GMC, " - ", GMCs$CODE)
-gmc_choices <- levels(QC_tumor$CENTER_annon)
                       
 ui <- fluidPage(
   
@@ -46,10 +50,10 @@ ui <- fluidPage(
       
       dateRangeInput(inputId = "dateRange",
                      label = "Sample collection date:",
-                     start = "2015-06-23",
-                     end = "2017-01-06",
-                     min = "2015-06-23",
-                     max = "2017-01-06",
+                     start = min_date,
+                     end = max_date,
+                     min = min_date,
+                     max = max_date,
                      startview = "month"),
       hr(),
       
@@ -98,12 +102,17 @@ ui <- fluidPage(
           tabPanel("COVERAGE UNEVENNESS",
                    br(),
                    plotOutput("UnCoveragePlot")
+                   #plotOutput("UnCoveragePlot", brush = "plot_brush"),
+                   # Show outlier table
+                   # DT::dataTableOutput(outputId = "outliers")
           ),
           
           tabPanel("AT/GC DROPOUT",
                    br(),
                    plotOutput("ATdropPlot"),
                    plotOutput("GCdropPlot")
+                   # Show outlier table
+                  # , DT::dataTableOutput(outputId = "outliers")
           ),
           
           tabPanel("CHIMERIC READS",
@@ -139,7 +148,7 @@ ui <- fluidPage(
 
 
 server <- function(input, output, session) {
-
+  
   # Reactivity for the All/None GMC checkbox
   observe({
     updateCheckboxGroupInput(
@@ -610,6 +619,11 @@ server <- function(input, output, session) {
     }
   }) 
   
+  # # Data table with outliers, sensitive to hover (not great with boxplots, excluding)
+  # output$outliers <- DT::renderDataTable({
+  #   brushedPoints(QC_tumor, input$plot_brush)
+  # })
+  # 
 }
 
 # Run the application 

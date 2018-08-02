@@ -29,7 +29,8 @@ levels(QC_tumor$CENTER_annon)
 levels(QC_tumor$CENTER_annon) <- paste0("GMC", 1:length(levels(QC_tumor$CENTER)))
 levels(QC_tumor$CENTER_annon)
 table(QC_tumor$CENTER, QC_tumor$CENTER_annon)
-
+# Remove unnecessary fields
+QC_tumor <- QC_tumor %>% select(-(WELL_ID), -(CENTER), -(DIVERSITY), -(GbQ30NoDupsNoClip), -(perc_bases_ge_15x_mapQ_ge11))
 # Save test data
 save(QC_tumor, file = "test_QC_data.RData")
 
