@@ -43,6 +43,6 @@ save(QC_table_dummy, file = "test_QC_data.RData")
 # Remove some GMCs
 QC_table_dummy <- QC_table_dummy %>% filter(!CENTER_annon %in% c("GMC9", "GMC10"))
 # Write the dummy table
-write.csv(QC_table_dummy, file = "./QC_dummy_table.csv")
+write.csv(QC_table_dummy, file = "./QC_dummy_table.csv", row.names = F)
 
 
